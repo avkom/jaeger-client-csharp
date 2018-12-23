@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Jaeger.Metrics;
 using Jaeger.Samplers;
 using Jaeger.Senders;
+using Jaeger.Thrift;
+using Jaeger.Thrift.Senders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenTracing;
@@ -15,7 +17,6 @@ using OpenTracing.Noop;
 using OpenTracing.Propagation;
 using OpenTracing.Util;
 using Xunit;
-using static Jaeger.Configuration;
 
 namespace Jaeger.Tests
 {
@@ -87,7 +88,7 @@ namespace Jaeger.Tests
         {
             SetProperty(Configuration.JaegerSamplerType, ConstSampler.Type);
             SetProperty(Configuration.JaegerSamplerParam, "1");
-            SamplerConfiguration samplerConfig = SamplerConfiguration.FromEnv(_loggerFactory);
+            Configuration.SamplerConfiguration samplerConfig = Configuration.SamplerConfiguration.FromEnv(_loggerFactory);
             Assert.Equal(ConstSampler.Type, samplerConfig.Type);
             Assert.Equal(1, samplerConfig.Param);
         }
@@ -97,7 +98,7 @@ namespace Jaeger.Tests
         {
             SetProperty(Configuration.JaegerSamplerType, ConstSampler.Type);
             SetProperty(Configuration.JaegerSamplerParam, "X");
-            SamplerConfiguration samplerConfig = SamplerConfiguration.FromEnv(_loggerFactory);
+            Configuration.SamplerConfiguration samplerConfig = Configuration.SamplerConfiguration.FromEnv(_loggerFactory);
             Assert.Equal(ConstSampler.Type, samplerConfig.Type);
             Assert.Null(samplerConfig.Param);
         }
@@ -110,10 +111,10 @@ namespace Jaeger.Tests
             SetProperty(Configuration.JaegerAgentPort, "1234");
             SetProperty(Configuration.JaegerReporterFlushInterval, "500");
             SetProperty(Configuration.JaegerReporterMaxQueueSize, "1000");
-            ReporterConfiguration reporterConfig = ReporterConfiguration.FromEnv(_loggerFactory);
+            Configuration.ReporterConfiguration reporterConfig = Configuration.ReporterConfiguration.FromEnv(_loggerFactory);
             Assert.True(reporterConfig.LogSpans);
-            Assert.Equal("MyHost", reporterConfig.SenderConfig.AgentHost);
-            Assert.Equal(1234, reporterConfig.SenderConfig.AgentPort);
+            Assert.Equal("MyHost", reporterConfig.Sender.AgentHost);
+            Assert.Equal(1234, reporterConfig.Sender.AgentPort);
             Assert.Equal(TimeSpan.FromMilliseconds(500), reporterConfig.FlushInterval);
             Assert.Equal(1000, reporterConfig.MaxQueueSize);
         }
@@ -122,7 +123,7 @@ namespace Jaeger.Tests
         public void TestReporterConfigurationInvalidFlushInterval()
         {
             SetProperty(Configuration.JaegerReporterFlushInterval, "X");
-            ReporterConfiguration reporterConfig = ReporterConfiguration.FromEnv(_loggerFactory);
+            Configuration.ReporterConfiguration reporterConfig = Configuration.ReporterConfiguration.FromEnv(_loggerFactory);
             Assert.Null(reporterConfig.FlushInterval);
         }
 
@@ -130,7 +131,7 @@ namespace Jaeger.Tests
         public void TestReporterConfigurationInvalidLogSpans()
         {
             SetProperty(Configuration.JaegerReporterLogSpans, "X");
-            ReporterConfiguration reporterConfig = ReporterConfiguration.FromEnv(_loggerFactory);
+            Configuration.ReporterConfiguration reporterConfig = Configuration.ReporterConfiguration.FromEnv(_loggerFactory);
             Assert.False(reporterConfig.LogSpans);
         }
 
@@ -211,16 +212,16 @@ namespace Jaeger.Tests
         {
             SetProperty(Configuration.JaegerAgentHost, "jaeger-agent");
             SetProperty(Configuration.JaegerAgentPort, "6832");
-            Assert.Equal("jaeger-agent", Configuration.ReporterConfiguration.FromEnv(_loggerFactory).SenderConfig.AgentHost);
-            Assert.Equal(6832, Configuration.ReporterConfiguration.FromEnv(_loggerFactory).SenderConfig.AgentPort);
+            Assert.Equal("jaeger-agent", Configuration.ReporterConfiguration.FromEnv(_loggerFactory).Sender.AgentHost);
+            Assert.Equal(6832, Configuration.ReporterConfiguration.FromEnv(_loggerFactory).Sender.AgentPort);
         }
 
         [Fact]
         public void TestNoNullPointerOnNullSender()
         {
             var reporterConfiguration = new Configuration.ReporterConfiguration(_loggerFactory);
-            Assert.Null(reporterConfiguration.SenderConfig.AgentHost);
-            Assert.Null(reporterConfiguration.SenderConfig.AgentPort);
+            Assert.Null(reporterConfiguration.Sender.AgentHost);
+            Assert.Null(reporterConfiguration.Sender.AgentPort);
         }
 
         [Fact(Skip="Java is using the Builder for this and it is deprecated.")]
@@ -272,7 +273,7 @@ namespace Jaeger.Tests
             TestTextMap textMap = new TestTextMap();
             SpanContext spanContext = new SpanContext(traceId, spanId, new SpanId(0), (byte)0);
 
-            CodecConfiguration codecConfiguration = new CodecConfiguration(_loggerFactory)
+            Configuration.CodecConfiguration codecConfiguration = new Configuration.CodecConfiguration(_loggerFactory)
                 .WithPropagation(Configuration.Propagation.B3);
             ITracer tracer = new Configuration("Test", _loggerFactory)
                 .WithCodec(codecConfiguration)
@@ -321,7 +322,7 @@ namespace Jaeger.Tests
             TestTextMap textMap = new TestTextMap();
             SpanContext spanContext = new SpanContext(traceId, spanId, new SpanId(0), (byte)0);
 
-            CodecConfiguration codecConfiguration = new CodecConfiguration(_loggerFactory)
+            Configuration.CodecConfiguration codecConfiguration = new Configuration.CodecConfiguration(_loggerFactory)
                 .WithPropagation(Configuration.Propagation.Jaeger)
                 .WithPropagation(Configuration.Propagation.B3);
             ITracer tracer = new Configuration("Test", _loggerFactory)
@@ -410,7 +411,7 @@ namespace Jaeger.Tests
         [Fact]
         public void TestUnknownSampler()
         {
-            SamplerConfiguration samplerConfiguration = new SamplerConfiguration(_loggerFactory);
+            Configuration.SamplerConfiguration samplerConfiguration = new Configuration.SamplerConfiguration(_loggerFactory);
             samplerConfiguration.WithType("unknown");
 
             Assert.Throws<NotSupportedException>(() => new Configuration("name", _loggerFactory)
@@ -421,7 +422,7 @@ namespace Jaeger.Tests
         [Fact]
         public void TestConstSampler()
         {
-            SamplerConfiguration samplerConfiguration = new SamplerConfiguration(_loggerFactory)
+            Configuration.SamplerConfiguration samplerConfiguration = new Configuration.SamplerConfiguration(_loggerFactory)
                 .WithType(ConstSampler.Type);
             ISampler sampler = samplerConfiguration.CreateSampler("name",
                 new MetricsImpl(NoopMetricsFactory.Instance));
@@ -431,7 +432,7 @@ namespace Jaeger.Tests
         [Fact]
         public void TestProbabilisticSampler()
         {
-            SamplerConfiguration samplerConfiguration = new SamplerConfiguration(_loggerFactory)
+            Configuration.SamplerConfiguration samplerConfiguration = new Configuration.SamplerConfiguration(_loggerFactory)
                 .WithType(ProbabilisticSampler.Type);
             ISampler sampler = samplerConfiguration.CreateSampler("name",
                 new MetricsImpl(NoopMetricsFactory.Instance));
@@ -441,7 +442,7 @@ namespace Jaeger.Tests
         [Fact]
         public void TestRateLimitingSampler()
         {
-            SamplerConfiguration samplerConfiguration = new SamplerConfiguration(_loggerFactory)
+            Configuration.SamplerConfiguration samplerConfiguration = new Configuration.SamplerConfiguration(_loggerFactory)
                 .WithType(RateLimitingSampler.Type);
             ISampler sampler = samplerConfiguration.CreateSampler("name",
                 new MetricsImpl(NoopMetricsFactory.Instance));

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Jaeger.Exceptions;
-using Jaeger.Thrift.Agent;
 using Jaeger.Thrift.Senders.Internal;
 using ThriftBatch = Jaeger.Thrift.Batch;
 using ThriftProcess = Jaeger.Thrift.Process;
 using ThriftSpan = Jaeger.Thrift.Span;
 
-namespace Jaeger.Senders
+namespace Jaeger.Thrift.Senders
 {
     /// <inheritdoc />
     /// <summary>
@@ -22,7 +21,7 @@ namespace Jaeger.Senders
         public const string DefaultAgentUdpHost = "localhost";
         public const int DefaultAgentUdpCompactPort = 6831;
 
-        private readonly Agent.Client _agentClient;
+        private readonly Agent.Agent.Client _agentClient;
         private readonly ThriftUdpClientTransport _udpTransport;
 
         /// <summary>
@@ -52,7 +51,7 @@ namespace Jaeger.Senders
             }
 
             _udpTransport = new ThriftUdpClientTransport(host, port);
-            _agentClient = new Agent.Client(ProtocolFactory.GetProtocol(_udpTransport));
+            _agentClient = new Agent.Agent.Client(ProtocolFactory.GetProtocol(_udpTransport));
         }
 
         protected override async Task SendAsync(ThriftProcess process, List<ThriftSpan> spans, CancellationToken cancellationToken)

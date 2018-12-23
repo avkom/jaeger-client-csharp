@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Jaeger.Exceptions;
-using Jaeger.Reporters.Protocols;
-using Jaeger.Thrift.Senders;
+using Jaeger.Senders;
 using ThriftProcess = Jaeger.Thrift.Process;
 using ThriftSpan = Jaeger.Thrift.Span;
 
-namespace Jaeger.Senders
+namespace Jaeger.Thrift.Senders
 {
     /// <summary>
     /// JaegerThriftTransport is the base class for transporting spans from C# into Jaeger.
@@ -27,7 +26,7 @@ namespace Jaeger.Senders
         {
         }
 
-        public async Task<int> AppendAsync(Span span, CancellationToken cancellationToken)
+        public async Task<int> AppendAsync(Jaeger.Span span, CancellationToken cancellationToken)
         {
             if (_process == null)
             {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Jaeger.Reporters.Protocols;
 using Jaeger.Senders;
+using Jaeger.Thrift.Senders;
 using ThriftSpan = Jaeger.Thrift.Span;
 
 namespace Jaeger.Tests.Reporters

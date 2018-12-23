@@ -35,7 +35,7 @@ var reporter = new RemoteReporter.Builder()
     .WithLoggerFactory(loggerFactory) // optional, defaults to no logging
     .WithMaxQueueSize(...)            // optional, defaults to 100
     .WithFlushInterval(...)           // optional, defaults to TimeSpan.FromSeconds(1)
-    .WithSender(...)                  // optional, defaults to UdpSender("localhost", 6831, 0)
+    .WithSender(...)                  // required
     .Build();
 ```
 

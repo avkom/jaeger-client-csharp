@@ -5,14 +5,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Jaeger.Exceptions;
-using Jaeger.Thrift.Agent;
 using Thrift.Protocols;
 using Thrift.Transports.Client;
 using ThriftBatch = Jaeger.Thrift.Batch;
 using ThriftProcess = Jaeger.Thrift.Process;
 using ThriftSpan = Jaeger.Thrift.Span;
 
-namespace Jaeger.Senders
+namespace Jaeger.Thrift.Senders
 {
     public class HttpSender : ThriftSender
     {

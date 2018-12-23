@@ -239,7 +239,7 @@ namespace Jaeger.Reporters
                 }
                 if (_sender == null)
                 {
-                    _sender = new UdpSender();
+                    throw new ArgumentNullException("sender", "Sender is not specified. Use WithSender(ISender sender).");
                 }
                 if (_metrics == null)
                 {

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Jaeger.Reporters;
-using Jaeger.Reporters.Protocols;
 using Jaeger.Samplers;
+using Jaeger.Thrift.Senders;
 using OpenTracing;
 using Xunit;
 using ThriftLog = Jaeger.Thrift.Log;

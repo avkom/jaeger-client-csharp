@@ -10,11 +10,11 @@ using ThriftReferenceType = Jaeger.Thrift.SpanRefType;
 using ThriftLog = Jaeger.Thrift.Log;
 using ThriftTagType = Jaeger.Thrift.TagType;
 
-namespace Jaeger.Reporters.Protocols
+namespace Jaeger.Thrift.Senders
 {
     public static class JaegerThriftSpanConverter
     {
-        public static ThriftSpan ConvertSpan(Span span)
+        public static ThriftSpan ConvertSpan(Jaeger.Span span)
         {
             var context = span.Context;
             var startTime = span.StartTimestampUtc.ToUnixTimeMicroseconds();
